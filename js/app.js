@@ -805,7 +805,7 @@
         <div class="grid-2" style="margin:20px 0 16px">
           <div class="card banner">
             <div class="me-level">
-              <span class="big-badge" style="--lvl:${me.passed ? lvlColor(me.passed) : "var(--muted)"}">${me.passed || "–"}</span>
+              <span class="big-badge" style="--lvl:${me.passed ? lvlColor(me.passed) : "var(--line)"}">${me.passed || "–"}</span>
               <div><h3>${me.passed ? `Highest pass: ${INFO[me.passed].name}` : "No level passed yet"}</h3><p class="muted small">${plural(h.length, "test")} taken</p></div>
             </div>
           </div>
