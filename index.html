@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>LevelUp English Test</title>
+<meta name="description" content="CEFR English level tests from A1 to C2 with grammar, vocabulary, reading, listening and writing, plus study resources based on your score.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%233b4cca'/%3E%3Ctext x='16' y='23' font-family='Arial' font-weight='bold' font-size='20' fill='white' text-anchor='middle'%3EL%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<header class="topbar">
+  <a class="brand" href="#" data-go="home">
+    <span class="brand-mark">L</span>
+    <span>LevelUp <b>English</b></span>
+  </a>
+  <nav class="topnav">
+    <a href="#" data-go="home">Home</a>
+    <a href="#" data-go="history">My results</a>
+  </nav>
+</header>
+
+<main id="app" class="container"></main>
+
+<footer class="footer">
+  <p>Original practice tests aligned to the CEFR (A1–C2) and modeled on Cambridge exam formats. They estimate your level but are not an official certificate. For an official result, take a Cambridge, IELTS or EF SET exam.</p>
+</footer>
+
+<div class="modal-back" id="modal" hidden>
+  <div class="modal card" role="dialog" aria-modal="true" aria-labelledby="modal-text">
+    <p id="modal-text"></p>
+    <div class="row" style="justify-content:flex-end">
+      <button class="btn ghost" id="modal-cancel">Cancel</button>
+      <button class="btn" id="modal-ok">OK</button>
+    </div>
+  </div>
+</div>
+
+<script src="data/resources.js"></script>
+<script src="data/a1.js"></script>
+<script src="data/a2.js"></script>
+<script src="data/b1.js"></script>
+<script src="data/b2.js"></script>
+<script src="data/c1.js"></script>
+<script src="data/c2.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
