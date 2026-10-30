@@ -2,25 +2,28 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
+<meta name="theme-color" content="#2d45e6">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>LevelUp English Test</title>
 <meta name="description" content="CEFR English level tests from A1 to C2 with grammar, vocabulary, reading, listening and writing, plus study resources based on your score.">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%233b4cca'/%3E%3Ctext x='16' y='23' font-family='Arial' font-weight='bold' font-size='20' fill='white' text-anchor='middle'%3EL%3C/text%3E%3C/svg%3E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 34 34'%3E%3Crect width='34' height='34' rx='9' fill='%232d45e6'/%3E%3Cpath d='M7 26h5v-5h5v-5h5v-5h5v15H7z' fill='white'/%3E%3Ccircle cx='24.5' cy='7.5' r='2.5' fill='%23ffd84d'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css?v=2">
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Bricolage+Grotesque:opsz,wght@12..96,500..800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css?v=3">
 </head>
 <body>
 <header class="topbar">
-  <a class="brand" href="#" data-go="home">
-    <span class="brand-mark">L</span>
-    <span>LevelUp <b>English</b></span>
-  </a>
-  <nav class="topnav">
-    <a href="#" data-go="home">Home</a>
-    <a href="#" data-go="history">My results</a>
-  </nav>
+  <div class="topbar-in">
+    <a class="brand" href="#" data-go="home" aria-label="LevelUp English home">
+      <svg class="brand-mark" viewBox="0 0 34 34" aria-hidden="true"><rect width="34" height="34" rx="9" style="fill:var(--primary)"/><path d="M7 26h5v-5h5v-5h5v-5h5v15H7z" style="fill:var(--primary-ink)"/><circle cx="24.5" cy="7.5" r="2.5" style="fill:var(--mark)"/></svg>
+      <span>LevelUp English</span>
+    </a>
+    <nav class="topnav">
+      <a href="#" data-go="home" data-nav="home">Tests</a>
+      <a href="#" data-go="history" data-nav="history">My results</a>
+    </nav>
+  </div>
 </header>
 
 <main id="app" class="container"></main>
@@ -46,6 +49,6 @@
 <script src="data/b2.js"></script>
 <script src="data/c1.js"></script>
 <script src="data/c2.js"></script>
-<script src="js/app.js?v=2"></script>
+<script src="js/app.js?v=3"></script>
 </body>
 </html>
