@@ -13,11 +13,33 @@
   const SPEECH_RATE = { A1: .8, A2: .87, B1: .93, B2: .98, C1: 1, C2: 1.03 };
   const SKILLS = ["grammar", "vocabulary", "reading", "listening"];
   const SKILL_LABEL = { grammar: "Grammar", vocabulary: "Vocabulary", reading: "Reading", listening: "Listening", writing: "Writing" };
+  // One line-icon family (2px stroke, 24px grid), decorative unless labelled.
+  const ICONS = {
+    pencil: '<path d="M17 3a2.8 2.8 0 0 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/>',
+    book: '<path d="M2 4h6a4 4 0 0 1 4 4v13a3 3 0 0 0-3-3H2z"/><path d="M22 4h-6a4 4 0 0 0-4 4v13a3 3 0 0 1 3-3h7z"/>',
+    headphones: '<path d="M3 14h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-7a9 9 0 0 1 18 0v7a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3"/>',
+    write: '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h5"/>',
+    compass: '<circle cx="12" cy="12" r="10"/><path d="m16.2 7.8-2.1 6.3-6.3 2.1 2.1-6.3z"/>',
+    target: '<circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>',
+    pause: '<rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/>',
+    clock: '<circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>',
+    list: '<path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/>',
+    save: '<path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><path d="M17 21v-8H7v8M7 3v5h8"/>',
+    bulb: '<path d="M9 18h6M10 22h4"/><path d="M12 2a7 7 0 0 0-4 12.7c.6.5 1 1.3 1 2.3h6c0-1 .4-1.8 1-2.3A7 7 0 0 0 12 2z"/>',
+    check: '<path d="M20 6 9 17l-5-5"/>',
+    x: '<path d="M18 6 6 18M6 6l12 12"/>',
+    circle: '<circle cx="12" cy="12" r="9" stroke-dasharray="3 3"/>',
+    grid: '<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>',
+    volume: '<path d="M11 5 6 9H2v6h4l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M19 5a10 10 0 0 1 0 14"/>',
+    stairs: '<path d="M3 21h5v-5h5v-5h5V6h3"/>'
+  };
+  const icon = (name, cls = "") => `<svg class="i ${cls}" viewBox="0 0 24 24" aria-hidden="true" focusable="false">${ICONS[name]}</svg>`;
+  const PLAY_ICON = `<svg class="i fill" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M7 4v16l13-8z"/></svg>`;
   const PART_INFO = {
-    gv: { icon: "✏️", how: "Choose the word or phrase that best completes each sentence." },
-    reading: { icon: "📖", how: "Read each text, then answer the questions next to it." },
-    listening: { icon: "🎧", how: `Read the questions first, then press play. You can play each recording ${MAX_PLAYS} times, like the real exam.` },
-    writing: { icon: "📝", how: "Write your answer. It isn't scored here, but you can check it with the list and get a free CEFR mark from Cambridge." }
+    gv: { icon: "pencil", how: "Choose the word or phrase that best completes each sentence." },
+    reading: { icon: "book", how: "Read each text, then answer the questions next to it." },
+    listening: { icon: "headphones", how: `Read the questions first, then press play. You can play each recording ${MAX_PLAYS} times, like the real exam.` },
+    writing: { icon: "write", how: "Write your answer. It isn't scored here, but you can check it with the list and get a free CEFR mark from Cambridge." }
   };
   const LETTERS = "ABCD";
   const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -54,15 +76,21 @@
     document.getElementById("modal-text").textContent = text;
     const ok = document.getElementById("modal-ok"), cancel = document.getElementById("modal-cancel");
     ok.textContent = okLabel; cancel.textContent = cancelLabel;
+    const back = document.activeElement;
     m.hidden = false; ok.focus();
     return new Promise(res => {
-      const done = v => { m.hidden = true; ok.onclick = cancel.onclick = m.onclick = document.onkeydown = null; res(v); };
+      const done = v => { m.hidden = true; ok.onclick = cancel.onclick = m.onclick = document.onkeydown = null; if (back && back.focus) back.focus(); res(v); };
       ok.onclick = () => done(true);
       cancel.onclick = () => done(false);
       m.onclick = e => { if (e.target === m) done(false); };
-      document.onkeydown = e => { if (e.key === "Escape") done(false); };
+      // Escape closes; Tab stays inside the dialog.
+      document.onkeydown = e => {
+        if (e.key === "Escape") done(false);
+        if (e.key === "Tab") { e.preventDefault(); (document.activeElement === ok ? cancel : ok).focus(); }
+      };
     });
   }
+  const announce = text => { const l = document.getElementById("live"); if (l) l.textContent = text; };
   const verdictOf = p => p >= STRONG ? ["Strong pass", "v-strong"] : p >= PASS ? ["Pass", "v-pass"] : p >= PASS - 10 ? ["Almost there", "v-close"] : ["Not yet", "v-fail"];
 
   /* ---------- question access ---------- */
@@ -156,7 +184,9 @@
       if (!current || current.type !== "level") return stopTimer();
       current.remaining = Math.max(0, current.remaining - 1);
       const el = document.getElementById("timer");
-      if (el) { el.textContent = "⏱ " + fmtTime(current.remaining); el.classList.toggle("low", current.remaining < 300); }
+      if (el) { document.getElementById("timer-text").textContent = fmtTime(current.remaining); el.classList.toggle("low", current.remaining < 300); }
+      if (current.remaining === 300) announce("5 minutes left.");
+      if (current.remaining === 60) announce("1 minute left.");
       if (current.remaining % 5 === 0) save();
       if (current.remaining === 0) finishLevel();
     }, 1000);
@@ -210,7 +240,7 @@
     const next = me.passed ? LV[Math.min(LV.indexOf(me.passed) + 1, LV.length - 1)] : (me.placement || (hist.length ? "A1" : null));
 
     const hero = hist.length ? `
-        <p class="eyebrow">Welcome back 👋</p>
+        <p class="eyebrow">Welcome back</p>
         <h1>${here ? `You're at <span class="mark">${here}</span>.${next !== here ? ` Next step: ${next}.` : " Keep it sharp."}` : `Ready for <span class="mark">your next</span> test?`}</h1>
         <p class="lead">${plural(hist.length, "test")} taken so far. ${me.passed ? `Your highest pass is ${me.passed} ${INFO[me.passed].name}.` : me.placement ? `Your placement test says about ${me.placement}. Take the full test to confirm it.` : "Every test gives you a study plan, so each try makes you stronger."}</p>
         <div class="row">
@@ -230,9 +260,9 @@
       <section class="hero">
         <div>${hero}</div>
         <div class="stairs" role="list" aria-label="The six CEFR levels">
-          ${LV.map((l, i) => `<button class="stair" role="listitem" style="--i:${i};--lvl:${lvlColor(l)}" data-intro="${l}" aria-label="${l} ${INFO[l].name} test${l === here ? " (your level)" : ""}">
+          ${LV.map((l, i) => `<button class="stair" role="listitem" style="--i:${i};--lvl:${lvlColor(l)}" data-intro="${l}" aria-label="${l} ${INFO[l].name} test${l === here ? ", your level" : ""}${best[l] && best[l].pct >= PASS ? ", passed" : ""}">
             ${l === here ? `<span class="pin">You are here</span>` : ""}
-            ${best[l] && best[l].pct >= PASS ? `<span class="tick" title="Passed">✓</span>` : ""}
+            ${best[l] && best[l].pct >= PASS ? `<span class="tick">${icon("check")}</span>` : ""}
             <b>${l}</b><span class="nm">${INFO[l].name}</span>
           </button>`).join("")}
         </div>
@@ -240,7 +270,7 @@
 
       ${saved ? `
         <div class="card banner resume section" style="margin-top:32px">
-          <div><h3>⏸ You have an unfinished test: ${saved.type === "placement" ? "Placement test" : saved.level + " " + INFO[saved.level].name}</h3>
+          <div><h3>${icon("pause")} You have an unfinished test: ${saved.type === "placement" ? "Placement test" : saved.level + " " + INFO[saved.level].name}</h3>
           <p class="muted small">Your answers are saved.${saved.type === "level" ? " Time left: " + fmtTime(saved.remaining) + "." : ""}</p></div>
           <div class="row"><button class="btn" id="resume">Continue <span class="arrow">→</span></button><button class="btn ghost" id="discard">Discard</button></div>
         </div>` : ""}
@@ -249,13 +279,13 @@
         <div class="section-head"><h2>Two ways to start</h2></div>
         <div class="paths">
           <div class="card path featured">
-            <span class="icon">🧭</span>
+            <span class="icon">${icon("compass")}</span>
             <h3>Not sure? Take the placement test</h3>
             <p>About 10 minutes. It starts easy and gets harder until it finds your level. Then take the full test for that level.</p>
             <button class="btn" id="placement">Start placement test <span class="arrow">→</span></button>
           </div>
           <div class="card path">
-            <span class="icon">🎯</span>
+            <span class="icon">${icon("target")}</span>
             <h3>Know your level? Take a full test</h3>
             <p>Pick A1 to C2 below. Each test is timed and has all four parts, like a real exam. You need ${PASS}% to pass.</p>
             <button class="btn ghost" data-scroll="levels">Choose a level ↓</button>
@@ -275,7 +305,7 @@
               <div class="top">${badge(l)}${b ? `<span class="chip ${b.pct >= PASS ? "pass-chip" : "fail-chip"}">Best ${b.pct}%</span>` : l === next ? `<span class="chip" style="background:var(--mark);color:var(--mark-ink)">Recommended</span>` : ""}</div>
               <h3>${INFO[l].name}</h3>
               <p class="can">${esc(INFO[l].can)}</p>
-              <div class="meta"><span>⏱ ${INFO[l].minutes} min</span><span>📋 ${questionCount(l)} questions + writing</span></div>
+              <div class="meta"><span>${icon("clock")} ${INFO[l].minutes} min</span><span>${icon("list")} ${questionCount(l)} questions + writing</span></div>
               <span class="small muted">Like ${esc(INFO[l].exam)}</span>
               <span class="go">Start ${l} test →</span>
             </button>`;
@@ -331,15 +361,15 @@
             <div class="fact"><b>${PASS}%</b><span>to pass</span></div>
           </div>
           <ol class="parts-list">
-            <li><span class="ico">${PART_INFO.gv.icon}</span><div><b>Grammar & Vocabulary</b><span class="muted">Complete the sentences</span></div><span class="n">${TEST_SIZE.gv} q</span></li>
-            <li><span class="ico">${PART_INFO.reading.icon}</span><div><b>Reading</b><span class="muted">${TEST_SIZE.reading} texts</span></div><span class="n">${rq} q</span></li>
-            <li><span class="ico">${PART_INFO.listening.icon}</span><div><b>Listening</b><span class="muted">${TEST_SIZE.listening} recordings, play each twice</span></div><span class="n">${lq} q</span></li>
-            <li><span class="ico">${PART_INFO.writing.icon}</span><div><b>Writing</b><span class="muted">${esc(L.writing.words)}, self-checked</span></div><span class="n">not scored</span></li>
+            <li><span class="ico">${icon(PART_INFO.gv.icon)}</span><div><b>Grammar & Vocabulary</b><span class="muted">Complete the sentences</span></div><span class="n">${TEST_SIZE.gv} q</span></li>
+            <li><span class="ico">${icon(PART_INFO.reading.icon)}</span><div><b>Reading</b><span class="muted">${TEST_SIZE.reading} texts</span></div><span class="n">${rq} q</span></li>
+            <li><span class="ico">${icon(PART_INFO.listening.icon)}</span><div><b>Listening</b><span class="muted">${TEST_SIZE.listening} recordings, play each twice</span></div><span class="n">${lq} q</span></li>
+            <li><span class="ico">${icon(PART_INFO.writing.icon)}</span><div><b>Writing</b><span class="muted">${esc(L.writing.words)}, self-checked</span></div><span class="n">not scored</span></li>
           </ol>
           <ul class="tips muted">
-            <li>🎧 Turn your sound on for the listening part.</li>
-            <li>💾 Your answers save by themselves. You can leave and continue later.</li>
-            <li>⏱ When the time runs out, the test finishes and you get your score.</li>
+            <li>${icon("volume")}<span>Turn your sound on for the listening part.</span></li>
+            <li>${icon("save")}<span>Your answers save by themselves. You can leave and continue later.</span></li>
+            <li>${icon("clock")}<span>When the time runs out, the test finishes and you get your score.</span></li>
           </ul>
           <div class="row">
             <button class="btn big" id="begin">Start the test <span class="arrow">→</span></button>
@@ -416,7 +446,7 @@
           return `<div class="card text-card">
             <h3>Recording ${k + 1}: ${esc(S.title)}</h3>
             <div class="player" id="player-${p}">
-              <button class="play-btn" data-play="${p}" aria-label="Play recording ${k + 1}" ${used >= MAX_PLAYS || !synth ? "disabled" : ""}>▶</button>
+              <button class="play-btn" data-play="${p}" aria-label="Play recording ${k + 1}" ${used >= MAX_PLAYS || !synth ? "disabled" : ""}>${PLAY_ICON}</button>
               <div class="info"><b id="pstate-${p}">${playLabel(used)}</b><span class="muted small">Plays left <span class="dots" id="dots-${p}">${dotsHTML(used)}</span></span></div>
               <div class="eq" aria-hidden="true">${"<i></i>".repeat(7)}</div>
             </div>
@@ -442,11 +472,11 @@
       <div class="testbar"><div class="testbar-in">
         <div class="head">
           <div class="title">${badge(t.level, "sm")}<b>${INFO[t.level].name} test</b></div>
-          <span class="timer ${t.remaining < 300 ? "low" : ""}" id="timer" role="timer">⏱ ${fmtTime(t.remaining)}</span>
+          <span class="timer ${t.remaining < 300 ? "low" : ""}" id="timer" role="timer" aria-label="Time left">${icon("clock")}<span id="timer-text">${fmtTime(t.remaining)}</span></span>
         </div>
         <div class="tabs">${t.parts.map((p, i) => {
           const q = partQuestions(t, p), a = q.filter(done).length;
-          return `<button class="tab ${i === t.partIdx ? "active" : ""} ${q.length && a === q.length ? "complete" : ""}" data-part="${i}">${PART_INFO[p.kind].icon} ${p.title.replace(" & Vocabulary", " & Vocab")}${q.length ? `<span class="cnt" data-cnt="${i}">${a}/${q.length}</span>` : ""}</button>`;
+          return `<button class="tab ${i === t.partIdx ? "active" : ""} ${q.length && a === q.length ? "complete" : ""}" data-part="${i}" ${i === t.partIdx ? 'aria-current="step"' : ""}>${icon(PART_INFO[p.kind].icon)} ${p.title.replace(" & Vocabulary", " & Vocab")}${q.length ? `<span class="cnt" data-cnt="${i}">${a}/${q.length}</span>` : ""}</button>`;
         }).join("")}</div>
       </div><div class="progress"><span id="prog" style="width:${pct(ids.filter(done).length, ids.length)}%"></span></div></div>
 
@@ -460,11 +490,11 @@
       <div class="actionbar">
         <div class="qnav" id="qnav" hidden>
           <p>Jump to any question. Blue ones are answered.</p>
-          <div class="qgrid">${(() => { let k = 0; return t.parts.map((p, pi) => { const q = partQuestions(t, p); return q.length ? `<span class="sep">${p.title}</span>` + q.map(id => `<button data-jump="${pi}|${id}" class="${done(id) ? "done" : ""} ${pi === t.partIdx ? "here" : ""}">${++k}</button>`).join("") : ""; }).join(""); })()}</div>
+          <div class="qgrid">${(() => { let k = 0; return t.parts.map((p, pi) => { const q = partQuestions(t, p); return q.length ? `<span class="sep">${p.title}</span>` + q.map(id => `<button data-jump="${pi}|${id}" class="${done(id) ? "done" : ""} ${pi === t.partIdx ? "here" : ""}" aria-label="Question ${++k}, ${done(id) ? "answered" : "not answered"}">${k}</button>`).join("") : ""; }).join(""); })()}</div>
         </div>
         <div class="actionbar-in">
-          <button class="btn ghost" id="prev" ${t.partIdx === 0 ? 'style="visibility:hidden"' : ""}>← <span class="hide-sm">Back</span></button>
-          <button class="qnav-toggle" id="qtoggle" aria-expanded="false" aria-controls="qnav">▦ <span id="answered">${ids.filter(done).length}/${ids.length}</span><span class="lbl">answered</span></button>
+          <button class="btn ghost" id="prev" aria-label="Previous part" ${t.partIdx === 0 ? 'style="visibility:hidden"' : ""}>← <span class="hide-sm">Back</span></button>
+          <button class="qnav-toggle" id="qtoggle" aria-expanded="false" aria-controls="qnav">${icon("grid")} <span id="answered">${ids.filter(done).length}/${ids.length}</span><span class="lbl">answered</span></button>
           <button class="btn" id="next">${last ? "Finish & see score" : `<span>Next<span class="hide-sm">: ${nextTitle}</span></span> <span class="arrow">→</span>`}</button>
         </div>
       </div>`;
@@ -481,7 +511,10 @@
         const q = partQuestions(t, p), c = app.querySelector(`[data-cnt="${i}"]`);
         if (c) { const k = q.filter(done).length; c.textContent = `${k}/${q.length}`; c.parentElement.classList.toggle("complete", k === q.length); }
       });
-      app.querySelectorAll("[data-jump]").forEach(b => b.classList.toggle("done", done(b.dataset.jump.split("|")[1])));
+      app.querySelectorAll("[data-jump]").forEach(b => {
+        const ok = done(b.dataset.jump.split("|")[1]);
+        b.classList.toggle("done", ok); b.setAttribute("aria-label", `Question ${b.textContent}, ${ok ? "answered" : "not answered"}`);
+      });
     };
     bindAnswers(t.answers, id => getQ(t.level, id), refresh, part.kind === "gv");
 
@@ -492,14 +525,14 @@
       app.querySelectorAll("[data-play]").forEach(x => x.disabled = true);
       const pl = document.getElementById(`player-${p}`);
       pl.classList.add("playing");
-      b.textContent = "♪";
+      b.innerHTML = icon("volume"); b.setAttribute("aria-label", "Playing");
       document.getElementById(`pstate-${p}`).textContent = "Playing… listen carefully";
       document.getElementById(`dots-${p}`).innerHTML = dotsHTML(t.plays[p]);
       speak(L.listening[p].script, SPEECH_RATE[t.level], () => {
         pl.classList.remove("playing");
         app.querySelectorAll("[data-play]").forEach(x => {
           const k = +x.dataset.play, u = t.plays[k] || 0;
-          x.disabled = u >= MAX_PLAYS; x.textContent = "▶";
+          x.disabled = u >= MAX_PLAYS; x.innerHTML = PLAY_ICON; x.setAttribute("aria-label", "Play recording again");
           document.getElementById(`pstate-${k}`).textContent = playLabel(u);
         });
       });
@@ -566,10 +599,10 @@
     app.innerHTML = `
       <div class="testbar"><div class="testbar-in">
         <div class="head">
-          <div class="title"><b>🧭 Placement test</b></div>
+          <div class="title"><b>${icon("compass")} Placement test</b></div>
           <span class="muted small">Stage ${t.stage + 1} of ${t.rounds.length}</span>
         </div>
-        <div class="tabs">${t.rounds.map((x, i) => `<span class="tab ${i === t.stage ? "active" : ""} ${i < t.stage ? "complete" : ""}" style="cursor:default">${i < t.stage ? "✓ " : ""}${x.level}</span>`).join("")}</div>
+        <div class="tabs">${t.rounds.map((x, i) => `<span class="tab ${i === t.stage ? "active" : ""} ${i < t.stage ? "complete" : ""}" style="cursor:default">${i < t.stage ? icon("check") + " " : ""}${x.level}</span>`).join("")}</div>
       </div><div class="progress"><span style="width:${pct(t.stage, t.rounds.length)}%"></span></div></div>
 
       <div class="part-head">
@@ -665,13 +698,13 @@
       const qs = qids.map((qid, k) => {
         const q = getQ(t.level, qid), a = t.answers[qid];
         return `<div class="question">
-          <div class="q-text"><span class="q-num">${k + 1}</span><span>${esc(q.q)}</span><span class="q-state">${a === q.answer ? "✅" : a === undefined ? "⚪ No answer" : "❌"}</span></div>
-          <div class="options ${q.options.some(o => o.length > 30) ? "long" : ""}">${q.options.map((o, i) => `<div class="option ${i === q.answer ? "correct" : i === a ? "wrong" : ""}"><span class="bubble">${LETTERS[i]}</span><span>${esc(o)}</span></div>`).join("")}</div>
-          <div class="explain">💡 ${esc(q.explain)}</div></div>`;
+          <div class="q-text"><span class="q-num">${k + 1}</span><span>${esc(q.q)}</span>${a === q.answer ? `<span class="q-state ok">${icon("check")} Correct</span>` : a === undefined ? `<span class="q-state skip">${icon("circle")} No answer</span>` : `<span class="q-state no">${icon("x")} Wrong</span>`}</div>
+          <div class="options ${q.options.some(o => o.length > 30) ? "long" : ""}">${q.options.map((o, i) => `<div class="option ${i === q.answer ? "correct" : i === a ? "wrong" : ""}"><span class="bubble">${LETTERS[i]}</span><span>${esc(o)}</span>${i === q.answer ? `<span class="opt-note">${i === a ? "Your answer · correct" : "Correct answer"}</span>` : i === a ? `<span class="opt-note">Your answer</span>` : ""}</div>`).join("")}</div>
+          <div class="explain">${icon("bulb")}${esc(q.explain)}</div></div>`;
       }).join("");
       const texts = p.kind === "reading" ? p.items.map(i => `<details style="margin:10px 0"><summary>Show text: ${esc(L.reading[i].title)}</summary><div class="passage" style="margin-top:8px">${esc(L.reading[i].text)}</div></details>`).join("")
         : p.kind === "listening" ? p.items.map(i => `<details style="margin:10px 0"><summary>Show transcript: ${esc(L.listening[i].title)}</summary><div class="passage" style="margin-top:8px">${esc(L.listening[i].script)}</div></details>`).join("") : "";
-      return `<details class="card review"><summary><span>${PART_INFO[p.kind].icon} ${p.title} <span class="muted small" style="font-family:var(--body)">· ${right}/${qids.length} correct</span></span></summary>${texts}${qs}</details>`;
+      return `<details class="card review"><summary><span>${icon(PART_INFO[p.kind].icon)} ${p.title} <span class="muted small" style="font-family:var(--body)">· ${right}/${qids.length} correct</span></span></summary>${texts}${qs}</details>`;
     }).join("");
 
     const ringColor = scoreColor(e.pct);
@@ -696,13 +729,13 @@
           }).join("")}</div>
         </div>
         <div class="card stack">
-          <h3 style="margin:0">${weak.length ? "What to work on" : "No weak skills 💪"}</h3>
+          <h3 style="margin:0">${weak.length ? "What to work on" : "No weak skills"}</h3>
           ${weak.length ? weak.map(s => `<div class="tip"><b>${SKILL_LABEL[s]}:</b> ${esc(window.SKILL_TIPS[s])}</div>`).join("") : `<p class="muted" style="margin:0">Every section is at ${PASS}% or more. Use the plan below to keep climbing.</p>`}
         </div>
       </div>
 
       <section class="section">
-        <div class="section-head"><h2>📚 Your study plan</h2><p class="muted small">Free resources picked for your score. Your weak skills come first.</p></div>
+        <div class="section-head"><h2>Your study plan</h2><p class="muted small">Free resources picked for your score. Your weak skills come first.</p></div>
         <div class="stack">${resHtml}</div>
       </section>
 
@@ -755,7 +788,7 @@
         <p class="muted small" style="margin:12px 0 0">You needed ${PLACEMENT_PASS} of ${PLACEMENT_PER_LEVEL} correct to move up a stage.</p>
       </div>
       <section class="section">
-        <div class="section-head"><h2>📚 Resources for you</h2><p class="muted small">${nextL ? `To move up to ${nextL}` : `To build your ${start} English`}</p></div>
+        <div class="section-head"><h2>Resources for you</h2><p class="muted small">${nextL ? `To move up to ${nextL}` : `To build your ${start} English`}</p></div>
         <div class="res-list">${resourcesFor(nextL || start, []).join("")}</div>
       </section>`;
   }
@@ -784,13 +817,13 @@
         <div class="card table-wrap">
           <table class="history"><thead><tr><th>Date</th><th>Test</th><th>Score</th><th>Result</th><th></th></tr></thead><tbody>
           ${h.map(e => e.type === "placement"
-            ? `<tr><td>${fmtDate(e.date)}</td><td>🧭 Placement</td><td>–</td><td>${e.placed ? badge(e.placed, "sm") : "Below A1"}</td><td><button class="btn ghost small" data-view="${e.id}">View</button></td></tr>`
+            ? `<tr><td>${fmtDate(e.date)}</td><td>${icon("compass")} Placement</td><td>–</td><td>${e.placed ? badge(e.placed, "sm") : "Below A1"}</td><td><button class="btn ghost small" data-view="${e.id}">View</button></td></tr>`
             : `<tr><td>${fmtDate(e.date)}</td><td>${badge(e.level, "sm")}</td><td><b>${e.pct}%</b></td><td><span class="verdict ${verdictOf(e.pct)[1]}">${verdictOf(e.pct)[0]}</span></td><td><button class="btn ghost small" data-view="${e.id}">View</button></td></tr>`).join("")}
           </tbody></table>
         </div>
         <p style="margin-top:16px"><button class="btn ghost small" id="clear">Delete all my results</button></p>`
       : `<div class="card empty" style="margin-top:20px">
-          <div class="big">🪜</div>
+          <div class="big">${icon("stairs")}</div>
           <h2>No results yet</h2>
           <p class="muted">Take a test and your scores will appear here, every time you come back.</p>
           <button class="btn" data-go="home">Choose a test <span class="arrow">→</span></button>
